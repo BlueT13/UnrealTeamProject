@@ -5,8 +5,6 @@
 #include "MainGameLevel/Monster/BossMonster/AI/BossMonsterAIController.h"
 #include "MainGameLevel/Monster/BossMonster/Kraken/BossKrakenData.h"
 #include "MainGameLevel/Monster/BossMonster/Kraken/BossKraken.h"
-#include "MainGameLevel/Player/MainPlayerState.h"
-#include "MainGameLevel/Player/MainCharacter.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -16,8 +14,8 @@
 #include "Global/ContentsEnum.h"
 #include "Global/ContentsLog.h"
 
-#include "TestLevel/Character/TestPlayerState.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestPlayerState.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 EBTNodeResult::Type UBTTaskNode_BossKrakenChase::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {

@@ -3,7 +3,6 @@
 
 #include "MainGameLevel/Monster/BasicMonster/BasicMonsterSpawner.h"
 #include "MainGameLevel/Monster/Base/BasicMonsterBase.h"
-#include "MainGameLevel/Player/MainCharacter.h"
 
 #include "Global/MainGameBlueprintFunctionLibrary.h"
 #include "Global/MainGameInstance.h"
@@ -12,7 +11,7 @@
 #include "Components/BillboardComponent.h"
 #include "Components/BoxComponent.h"
 
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 ABasicMonsterSpawner::ABasicMonsterSpawner()
 {

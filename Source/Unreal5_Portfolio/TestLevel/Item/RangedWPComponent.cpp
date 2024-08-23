@@ -3,7 +3,7 @@
 
 #include "TestLevel/Item/RangedWPComponent.h"
 #include "Global/MainGameInstance.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 

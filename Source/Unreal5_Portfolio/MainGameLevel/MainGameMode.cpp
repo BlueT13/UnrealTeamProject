@@ -4,7 +4,7 @@
 #include "MainGameLevel/MainGameMode.h"
 #include "Global/MainGameBlueprintFunctionLibrary.h"
 #include "Global/MainGameInstance.h"
-#include "Player/MainPlayerState.h"
+#include "Character/TestPlayerState.h"
 
 #include "Global/ContentsEnum.h"
 

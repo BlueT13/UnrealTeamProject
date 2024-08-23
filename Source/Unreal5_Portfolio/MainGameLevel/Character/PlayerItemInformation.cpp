@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MainGameLevel/Player/PlayerItemInformation.h"
+#include "MainGameLevel/Character/PlayerItemInformation.h"
 
 FPlayerItemInformation::FPlayerItemInformation()
 {

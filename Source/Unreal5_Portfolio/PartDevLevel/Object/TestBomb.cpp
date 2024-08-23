@@ -2,7 +2,7 @@
 
 
 #include "PartDevLevel/Object/TestBomb.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 #include "Components/CapsuleComponent.h"
 
 

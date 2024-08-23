@@ -5,15 +5,12 @@
 #include "Net/UnrealNetwork.h"
 #include "Global/ContentsEnum.h"
 #include "Global/ContentsLog.h"
-#include "MainGameLevel/Player/MainCharacter.h"
 #include "MainGameLevel/Object/TriggerBox/TriggerBoxBase.h"
 #include "Global/MainGameBlueprintFunctionLibrary.h"
-#include "MainGameLevel/Player/PlayerItemInformation.h"
+#include "MainGameLevel/Character/PlayerItemInformation.h"
 #include "Components/AudioComponent.h"
 #include "MainGameLevel/Object/TriggerBox/StageCheckBox.h"
-
-// 추후 삭제 필요
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 void AMainGameState::SetCurStage_Implementation(EGameStage _Stage)
 {

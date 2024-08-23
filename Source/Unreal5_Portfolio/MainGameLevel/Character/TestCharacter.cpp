@@ -1,24 +1,28 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MainGameLevel/Player/MainCharacter.h"
-#include "Global/MainGameBlueprintFunctionLibrary.h"
+#include "TestCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Global/MainGameInstance.h"
-#include "Global/DataTable/ItemDataRow.h"
 #include "Components/BoxComponent.h"
-#include "Camera/CameraComponent.h"
-#include "MainPlayerController.h"
-#include "PlayerItemInformation.h"
-#include "PartDevLevel/Character/PlayerAnimInstance.h"
 #include "Components/SphereComponent.h"
-#include "MainGameLevel/Player/MainPlayerState.h"
+#include "Camera/CameraComponent.h"
 
-#include "MainGameLevel/Monster/Base/BasicMonsterBase.h"
+#include "Global/MainGameBlueprintFunctionLibrary.h"
+#include "Global/MainGameInstance.h"
+#include "Global/ContentsLog.h"
+#include "Global/DataTable/ItemDataRow.h"
+#include "Global/DataTable/MapObjDataRow.h"
+
+#include "MainGameLevel/Character/PlayerItemInformation.h"
+#include "PartDevLevel/Character/PlayerAnimInstance.h"
+#include "TestPlayerState.h"
+#include "TestPlayerController.h"
+
+#include "MainGameLevel/Monster/Base/MonsterBase.h"
 
 #include "MainGameLevel/Object/MapObjectBase.h"
+#include "MainGameLevel/Object/ItemBase.h"
 #include "MainGameLevel/Object/DoorObject.h"
-#include "MainGameLevel/Object/Bomb.h"
 #include "MainGameLevel/Object/AreaObject.h"
 
 #include "MainGameLevel/UI/InGame/HeadNameWidgetComponent.h"
@@ -26,14 +30,18 @@
 #include "MainGameLevel/UI/Title/MainTitleHUD.h"
 #include "PartDevLevel/UI/GetItem/GetItem_UserWidget.h"
 #include "TestLevel/UI/TestMinimapIconComponent.h"
+#include "testLevel/UI/TestHpBarUserWidget.h"
 
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/GameplayStatics.h>
 
+#include "TimerManager.h"
+#include "Components/ArrowComponent.h"
+
 // Sets default values
-AMainCharacter::AMainCharacter()
+ATestCharacter::ATestCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// == Init ==
@@ -103,12 +111,19 @@ AMainCharacter::AMainCharacter()
 	MinimapIconComponent = CreateDefaultSubobject<UTestMinimapIconComponent>(TEXT("MinimapPlayerIcon"));
 	MinimapIconComponent->SetupAttachment(RootComponent);
 	MinimapIconComponent->bVisibleInSceneCaptureOnly = true;
-	
+
 	// HeadName Component
 	HeadNameComponent = CreateDefaultSubobject<UHeadNameWidgetComponent>(TEXT("HeadNameWidgetComponent"));
+	HeadNameComponent->SetIsReplicated(true);
 	HeadNameComponent->SetupAttachment(RootComponent);
 	HeadNameComponent->SetOwnerNoSee(true);
 	HeadNameComponent->bHiddenInSceneCapture = true;
+
+	MuzzlePos = CreateDefaultSubobject<UArrowComponent>(TEXT("Muzzle Position"));
+	MuzzlePos->SetupAttachment(ItemSocketMesh);
+
+	FPVMuzzlePos = CreateDefaultSubobject<UArrowComponent>(TEXT("FPV Muzzle Position"));
+	FPVMuzzlePos->SetupAttachment(FPVItemSocketMesh);
 
 	// Inventory
 	for (size_t i = 0; i < 4; i++)
@@ -118,7 +133,7 @@ AMainCharacter::AMainCharacter()
 	}
 }
 
-void AMainCharacter::PostInitializeComponents() // FName 부분 수정 필요.
+void ATestCharacter::PostInitializeComponents() // FName 부분 수정 필요.
 {
 	if (GetWorld()->WorldType == EWorldType::Game
 		|| GetWorld()->WorldType == EWorldType::PIE)
@@ -129,7 +144,7 @@ void AMainCharacter::PostInitializeComponents() // FName 부분 수정 필요.
 			return;
 		}
 
-		GetSetSelectCharacter(MainGameInst);
+		//GetSetSelectCharacter(MainGameInst->GetUIToSelectCharacter()); 이걸 여기서하면 네명이 다 서버 메인플레이어의 값이 됨 ㅇㅅㅇ...
 		if (UIToSelectCharacter == "")
 		{
 			UIToSelectCharacter = "TestPlayer"; // test
@@ -154,15 +169,15 @@ void AMainCharacter::PostInitializeComponents() // FName 부분 수정 필요.
 	Super::PostInitializeComponents();
 
 	// 리로드 위젯
-	if (nullptr != Reload_Widget)
-	{
-		Reload_Widget->AddToViewport();
-		Reload_Widget->SetVisibility(ESlateVisibility::Hidden);
-	}
+	//if (nullptr != Reload_Widget)
+	//{
+	//	Reload_Widget->AddToViewport();
+	//	Reload_Widget->SetVisibility(ESlateVisibility::Hidden);
+	//}
 }
 
 // Called when the game starts or when spawned
-void AMainCharacter::BeginPlay()
+void ATestCharacter::BeginPlay()
 {
 	NetCheck();
 	Super::BeginPlay();
@@ -176,55 +191,112 @@ void AMainCharacter::BeginPlay()
 	FPVPlayerAnimInst = Cast<UPlayerAnimInstance>(FPVMesh->GetAnimInstance());
 
 	// GetMapItemCollision Component에 대한 함수 Bind
-	GetMapItemCollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AMainCharacter::MapItemOverlapStart);
-	GetMapItemCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AMainCharacter::MapItemOverlapEnd);
+	GetMapItemCollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &ATestCharacter::MapItemOverlapStart);
+	GetMapItemCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &ATestCharacter::MapItemOverlapEnd);
+
+	// Instance에 저장돼있는 닉네임 모두가 알 수 있도록 하는 작업. 
+	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
+	if (nullptr == Inst)
+	{
+		//LOG(UILog, Fatal, "MainGameInstance is Null");
+		return;
+	}
+	FText InstName = FText::FromString(Inst->GetMainNickName());
+	SendNicknames(InstName);
 
 	ChangeMontage(EPlayerUpperState::UArm_Idle);
+
+	ATestPlayerController* CastCharacter = Cast<ATestPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
+	if (MyController == CastCharacter) {
+		GetWorldTimerManager().SetTimer(MeshHandle, [this]()
+			{
+				UMainGameInstance* Init = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
+				GetSetSelectCharacter(Init->GetUIToSelectCharacter());
+			}, 5.0f, false);
+	}
 }
 
-void AMainCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void ATestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 하체 정보
-	DOREPLIFETIME(AMainCharacter, LowerStateValue);
+	DOREPLIFETIME(ATestCharacter, LowerStateValue);
 	// 플레이어 자세 유형.
-	DOREPLIFETIME(AMainCharacter, DirValue);
-	DOREPLIFETIME(AMainCharacter, IdleDefault);
+	DOREPLIFETIME(ATestCharacter, DirValue);
+	DOREPLIFETIME(ATestCharacter, IdleDefault);
 
-	DOREPLIFETIME(AMainCharacter, Token);
-	//DOREPLIFETIME(AMainCharacter, IsFaint);
+	DOREPLIFETIME(ATestCharacter, Token);
+	DOREPLIFETIME(ATestCharacter, MyNickName);
 
-	DOREPLIFETIME(AMainCharacter, UIToSelectCharacter); // Test
+	DOREPLIFETIME(ATestCharacter, UIToSelectCharacter); // Test
 }
 
-void AMainCharacter::AnimationEnd()
+void ATestCharacter::AnimationEnd(FString _CurMontage)
 {
+	if ("E_Drinking_Montage" == _CurMontage || "A_Drinking_Montage" == _CurMontage)
+	{
+		PlayerHp_Heal();
+	}
+
 	PlayerAnimInst->ChangeAnimation(IdleDefault);
 	FPVPlayerAnimInst->ChangeAnimation(IdleDefault);
 }
 
 // Called every frame
-void AMainCharacter::Tick(float DeltaTime)
+void ATestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// 다른 플레이어의 HeadNameComponent가 항상 나를 향하도록 회전	// => 메인 이전 필요 (24.07.30 추가됨)
+	if (nullptr != HeadNameComponent)
+	{
+		HeadNameComponent->BilboardRotate(GetActorLocation());
+	}
+
 	UpdatePlayerHp(DeltaTime);
+
+#if WITH_EDITOR
+	{
+		if (true == HasAuthority())
+		{
+			AMainGameState* CurGameState = UMainGameBlueprintFunctionLibrary::GetMainGameState(GetWorld());
+
+			if (nullptr == CurGameState)
+			{
+				return;
+			}
+			int CurPlayerNum = CurGameState->GetPlayerCount();
+			FString PNString = FString::FromInt(CurPlayerNum);
+			UMainGameBlueprintFunctionLibrary::DebugTextPrint(GetWorld(), FString(TEXT("CurPlayerCount = ")) + PNString);
+
+			EGameStage StageNum = CurGameState->GetCurStage();
+			FString StageString = FString();
+			const UEnum* StateEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("EGameStage"), true);
+			if (StateEnum)
+			{
+				StageString = StateEnum->GetNameStringByValue((int64)StageNum);
+			}
+			UMainGameBlueprintFunctionLibrary::DebugTextPrint(GetWorld(), FString(TEXT("CurStage = ")) + StageString);
+		}
+	}
+#endif
 }
 
 // Called to bind functionality to input
-void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ATestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
 
-void AMainCharacter::ChangeLowerState_Implementation(EPlayerLowerState _LowerState)
+void ATestCharacter::ChangeLowerState_Implementation(EPlayerLowerState _LowerState)
 {
 	LowerStateValue = _LowerState;
 }
 
-void AMainCharacter::ChangePlayerDir_Implementation(EPlayerMoveDir _Dir)
+void ATestCharacter::ChangePlayerDir_Implementation(EPlayerMoveDir _Dir)
 {
 	if (IdleDefault == EPlayerUpperState::UArm_Idle)
 	{
@@ -250,19 +322,19 @@ void AMainCharacter::ChangePlayerDir_Implementation(EPlayerMoveDir _Dir)
 	DirValue = _Dir;
 }
 
-void AMainCharacter::DestroyItem_Implementation(AItemBase* _Item)
+void ATestCharacter::DestroyItem_Implementation(AItemBase* _Item)
 {
 	// 필드에서 얻은 아이템 Destroy
 	_Item->Destroy();
 }
 
-void AMainCharacter::SetItemSocketVisibility_Implementation(bool _Visibility)
+void ATestCharacter::SetItemSocketVisibility_Implementation(bool _Visibility)
 {
 	ItemSocketMesh->SetVisibility(_Visibility);
 	FPVItemSocketMesh->SetVisibility(_Visibility);
 }
 
-void AMainCharacter::SetItemSocketMesh_Implementation(UStaticMesh* _ItemMeshRes, FVector _ItemRelLoc, FRotator _ItemRelRot, FVector _ItemRelScale)
+void ATestCharacter::SetItemSocketMesh_Implementation(UStaticMesh* _ItemMeshRes, FVector _ItemRelLoc, FRotator _ItemRelRot, FVector _ItemRelScale)
 {
 	// static mesh 세팅
 	ItemSocketMesh->SetStaticMesh(_ItemMeshRes);
@@ -279,12 +351,16 @@ void AMainCharacter::SetItemSocketMesh_Implementation(UStaticMesh* _ItemMeshRes,
 	FPVItemSocketMesh->SetRelativeScale3D(_ItemRelScale);
 }
 
-void AMainCharacter::SettingItemSocket(int _InputKey)
+void ATestCharacter::SettingItemSocket(int _InputKey)
 {
 	if (-1 == _InputKey)
 	{
 		// ItemSocket의 Visibility 끄기
 		SetItemSocketVisibility(false);
+
+		// 현재 아이템 알려주기
+		CurItemIndex = _InputKey;
+
 		return;
 	}
 
@@ -298,9 +374,12 @@ void AMainCharacter::SettingItemSocket(int _InputKey)
 
 	// ItemSocket의 visibility 켜기
 	SetItemSocketVisibility(true);
+
+	// 현재 아이템 알려주기
+	CurItemIndex = _InputKey;
 }
 
-void AMainCharacter::SpawnItem_Implementation(FName _ItemName, FTransform _SpawnTrans)
+void ATestCharacter::SpawnItem_Implementation(FName _ItemName, FTransform _SpawnTrans)
 {
 	// 스폰할 아이템 정보 가져오기
 	UMainGameInstance* MainGameInst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
@@ -312,7 +391,40 @@ void AMainCharacter::SpawnItem_Implementation(FName _ItemName, FTransform _Spawn
 	DropItemMeshComp->SetSimulatePhysics(true);
 }
 
-void AMainCharacter::PickUpItem(AItemBase* _Item)
+void ATestCharacter::SendNicknames_Implementation(const FText& _Nickname)
+{
+	MyNickName = _Nickname;
+}
+
+void ATestCharacter::ClientMeshChange_Implementation(FName _CharacterType)
+{
+	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
+	if (nullptr == Inst)
+	{
+		return;
+	}
+
+	// 스켈레탈 메쉬 선택
+	USkeletalMesh* PlayerSkeletalMesh = Inst->GetPlayerData(_CharacterType)->GetPlayerSkeletalMesh();
+	GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
+	USkeletalMesh* FPVSkeletalMesh = Inst->GetPlayerData(_CharacterType)->GetPlayerFPVPlayerSkeletalMesh();
+	FPVMesh->SetSkeletalMesh(FPVSkeletalMesh);
+
+	// ABP 선택
+	UClass* AnimInst = Cast<UClass>(Inst->GetPlayerData(_CharacterType)->GetPlayerAnimInstance());
+	GetMesh()->SetAnimInstanceClass(AnimInst);
+	FPVMesh->SetAnimInstanceClass(AnimInst);
+
+	PlayerAnimInst = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	FPVPlayerAnimInst = Cast<UPlayerAnimInstance>(FPVMesh->GetAnimInstance());
+
+	// AnimMontage 선택
+	TMap<EPlayerUpperState, class UAnimMontage*> AnimMon = Inst->GetPlayerData(_CharacterType)->GetAnimMontages();
+	PlayerAnimInst->SetAnimMontages(AnimMon);
+	FPVPlayerAnimInst->SetAnimMontages(AnimMon);
+}
+
+void ATestCharacter::PickUpItem(AItemBase* _Item)
 {
 	const FItemDataRow* ItemData = _Item->GetItemData();
 	EItemType ItemType = ItemData->GetItemType();
@@ -328,7 +440,7 @@ void AMainCharacter::PickUpItem(AItemBase* _Item)
 	// 이미 같은 타입의 아이템이 인벤토리에 있을 경우 가지고 있던 아이템을 Drop
 	if (true == ItemSlot[ItemSlotIndex].IsItemIn)
 	{
-		//DropItem(ItemSlotIndex);
+		DropItem(ItemSlotIndex);
 	}
 
 	// 인벤토리에 PickUp한 아이템 정보 넣기
@@ -338,18 +450,18 @@ void AMainCharacter::PickUpItem(AItemBase* _Item)
 	ItemSlot[ItemSlotIndex].ReloadLeftNum = ItemData->GetReloadNum();		// 무기 장전 단위	 (Left) (-1일 경우 총기류 무기가 아님)
 	ItemSlot[ItemSlotIndex].Damage = ItemData->GetDamage();					// 무기 공격력 (0일 경우 무기가 아님)
 	ItemSlot[ItemSlotIndex].MeshRes = ItemData->GetResMesh();				// 스태틱 메시 리소스
-	if ("TestPlayer" == UIToSelectCharacter || "Vanguard" == UIToSelectCharacter)
+	if (FName("TestPlayer") == UIToSelectCharacter || FName("Vanguard") == UIToSelectCharacter)
 	{
 		ItemSlot[ItemSlotIndex].RelLoc = ItemData->GetRelLoc_E();			// ItemSocket, FPVItemSocket 상대적 위치
 		ItemSlot[ItemSlotIndex].RelRot = ItemData->GetRelRot_E();			// ItemSocket, FPVItemSocket 상대적 회전
 	}
-	else if ("AlienSoldier" == UIToSelectCharacter || "Crypto" == UIToSelectCharacter)
+	else if (FName("AlienSoldier") == UIToSelectCharacter || FName("Crypto") == UIToSelectCharacter)
 	{
 		ItemSlot[ItemSlotIndex].RelLoc = ItemData->GetRelLoc_A();			// ItemSocket, FPVItemSocket 상대적 위치
 		ItemSlot[ItemSlotIndex].RelRot = ItemData->GetRelRot_A();			// ItemSocket, FPVItemSocket 상대적 회전
 	}
 	ItemSlot[ItemSlotIndex].RelScale = ItemData->GetRelScale();				// ItemSocket, FPVItemSocket 상대적 크기
-	
+
 	// 필드에 존재하는 아이템 액터 삭제
 	DestroyItem(_Item);
 
@@ -358,29 +470,29 @@ void AMainCharacter::PickUpItem(AItemBase* _Item)
 		if (ItemType == EItemType::Rifle)
 		{
 			IdleDefault = EPlayerUpperState::Rifle_Idle;
+			SettingItemSocket(static_cast<int>(ItemType));
+			ChangeMontage(IdleDefault, true);
 		}
 		else if (ItemType == EItemType::Melee)
 		{
 			IdleDefault = EPlayerUpperState::Melee_Idle;
+			SettingItemSocket(static_cast<int>(ItemType));
+			ChangeMontage(IdleDefault, true);
 		}
-		SettingItemSocket(static_cast<int>(ItemType));
-		ChangeMontage(IdleDefault);
 	}
 
 	// To Controller -> To Widget
-	//AMainPlayerController* Con = Cast<AMainPlayerController>(GetController());
-	//if (nullptr != Con)
-	//{
-	//	Con->FGetItemToWidget.Execute();
-	//}
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
+	if (nullptr != Con)
+	{
+		Con->FGetItemToWidget.Execute();
+	}
 }
 
-void AMainCharacter::DropItem(int _SlotIndex)
+void ATestCharacter::DropItem(int _SlotIndex)
 {
-	CurItemIndex = 0;
-
 	// DropItem 할 수 없는 경우 1: 맨손일 때
-	if (CurItemIndex == -1)
+	if (-1 == _SlotIndex)
 	{
 #ifdef WITH_EDITOR
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, FString(TEXT("There's no item to drop. (Current posture is 'Barehand')")));
@@ -388,8 +500,8 @@ void AMainCharacter::DropItem(int _SlotIndex)
 		return;
 	}
 
-	// DropItem 할 수 없는 경우 2: (그럴리는 없겠지만) 현재 Posture에 해당하는 무기가 인벤토리에 없을 때
-	if (false == ItemSlot[CurItemIndex].IsItemIn)
+	// DropItem 할 수 없는 경우 2: Drop 하려는 아이템이 인벤토리에 없을 때
+	if (false == ItemSlot[_SlotIndex].IsItemIn)
 	{
 #ifdef WITH_EDITOR
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, FString(TEXT("There's no item to drop. (The item slot is empty)")));
@@ -404,63 +516,49 @@ void AMainCharacter::DropItem(int _SlotIndex)
 
 	SpawnItem(ItemName, SpawnTrans);
 
+	// 인벤토리에서 버린 아이템 정보 삭제
+	DeleteItemInfo(_SlotIndex);
 
 	// 자세를 맨손으로 변경
+	IdleDefault = EPlayerUpperState::UArm_Idle;
+	SettingItemSocket(-1);
 	ChangeMontage(IdleDefault);
+
+#ifdef WITH_EDITOR
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Drop the item. (Index : %d)"), _SlotIndex + 1));
+#endif // WITH_EDITOR
 }
 
-void AMainCharacter::FireRayCast_Implementation()
+void ATestCharacter::FireRayCast_Implementation()
 {
-	if (CurItemIndex == -1 || CurItemIndex == 2)
-	{
-		return;
-	}
-
-	// 탄알이 없다면 
-	if (ItemSlot[CurItemIndex].ReloadLeftNum <= 0)
-	{
-		//ItemSlot[CurItemIndex].ReloadLeftNum = ItemSlot[CurItemIndex].ReloadMaxNum;
-		// 장전하라는 Widget을 띄워야 함.
-		// 장전 함수는 CharacterReload 이다.
-		Reload_Widget->SetVisibility(ESlateVisibility::Visible);
-		return;
-	}
-
-	AMainPlayerController* Con = Cast<AMainPlayerController>(GetController());
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
 	FVector Start = GetMesh()->GetSocketLocation(FName("MuzzleSocket"));
 	//Start.Z -= 20.0f;
-	FVector End = (Con->GetControlRotation().Vector() * 2000.0f) + Start;
-	
+	FVector End = (Con->GetControlRotation().Vector() * 4000.0f) + Start;
+
 	FHitResult Hit;
 	if (GetWorld())
 	{
-		// 탄수 깎기.
-		ItemSlot[CurItemIndex].ReloadLeftNum -= 1;
-
 		// Ray Cast
 		TArray<AActor*> IgnoreActors; // 무시할 Actor들.
 		bool ActorHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), Start, End, ETraceTypeQuery::TraceTypeQuery1, false, IgnoreActors, EDrawDebugTrace::None, Hit, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
-		
+
+		DrawDebugLine(GetWorld(), Start, End, FColor::Red);
+
 		if (true == ActorHit && nullptr != Hit.GetActor())
 		{
 			FString BoneName = Hit.BoneName.ToString();
-			//UE_LOG(LogTemp, Warning, TEXT("Bone Name : %s"), *BoneName);
-			ABasicMonsterBase* Monster = Cast<ABasicMonsterBase>(Hit.GetActor());
+			AMonsterBase* Monster = Cast<AMonsterBase>(Hit.GetActor());
 			if (nullptr != Monster)
 			{
-				Monster->Damaged(ItemSlot[CurItemIndex].Damage);
+				Monster->Damaged(RifleDamage);
+				return;
 			}
-
-			//ATestBossMonsterBase* BossMonster = Cast<ATestBossMonsterBase>(Hit.GetActor());
-			//if(nullptr != BossMonster)
-			//{
-			//	BossMonster->Damaged(ItemSlot[CurItemIndex].Damage);
-			//}
 		}
 	}
 }
 
-void AMainCharacter::ChangeMontage_Implementation(EPlayerUpperState _UpperState, bool IsSet)
+void ATestCharacter::ChangeMontage_Implementation(EPlayerUpperState _UpperState, bool IsSet)
 {
 	if (true == IsSet)
 	{
@@ -472,22 +570,27 @@ void AMainCharacter::ChangeMontage_Implementation(EPlayerUpperState _UpperState,
 	ClientChangeMontage(_UpperState);
 }
 
-void AMainCharacter::ClientChangeMontage_Implementation(EPlayerUpperState _UpperState)
+void ATestCharacter::ClientChangeMontage_Implementation(EPlayerUpperState _UpperState)
 {
+	if (PlayerAnimInst == nullptr || FPVPlayerAnimInst == nullptr)
+	{
+		return;
+	}
+
 	PlayerAnimInst->ChangeAnimation(_UpperState);
 	FPVPlayerAnimInst->ChangeAnimation(_UpperState);
 }
 
-void AMainCharacter::SettingPlayerState_Implementation()
+void ATestCharacter::SettingPlayerState_Implementation()
 {
-	AMainPlayerController* Con = Cast<AMainPlayerController>(GetController());
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
 	if (nullptr == Con)
 	{
 		int a = 0;
 		return;
 	}
 
-	AMainPlayerState* ThisPlayerState = Cast<AMainPlayerState>(Con->PlayerState);
+	ATestPlayerState* ThisPlayerState = Cast<ATestPlayerState>(Con->PlayerState);
 	if (nullptr == ThisPlayerState)
 	{
 		int a = 0;
@@ -497,7 +600,41 @@ void AMainCharacter::SettingPlayerState_Implementation()
 	ThisPlayerState->InitPlayerData();
 }
 
-void AMainCharacter::CrouchCameraMove()
+void ATestCharacter::PlayerHp_Heal()
+{
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
+	if (nullptr == Con)
+	{
+		int a = 0;
+		return;
+	}
+
+	ATestPlayerState* ThisPlayerState = Cast<ATestPlayerState>(Con->PlayerState);
+	if (nullptr == ThisPlayerState)
+	{
+		int a = 0;
+		return;
+	}
+
+	ThisPlayerState->HealHp();
+
+	switch (IdleDefault)
+	{
+	case EPlayerUpperState::Rifle_Idle :
+		SettingItemSocket(static_cast<int>(EItemType::Rifle));
+		break;
+	case EPlayerUpperState::Melee_Idle :
+		SettingItemSocket(static_cast<int>(EItemType::Melee));
+		break;
+	case EPlayerUpperState::UArm_Idle :
+		SettingItemSocket(-1);
+		break;
+	default :
+		break;
+	}
+}
+
+void ATestCharacter::CrouchCameraMove()
 {
 	if (PointOfView == EPlayerFPSTPSState::FPS)
 	{
@@ -531,11 +668,11 @@ void AMainCharacter::CrouchCameraMove()
 	}
 }
 
-void AMainCharacter::MapItemOverlapStart(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ATestCharacter::MapItemOverlapStart(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	GetMapItemData = OtherActor;
 
-	AMainPlayerController* MyController = Cast<AMainPlayerController>(GetController());
+	ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
 	if (nullptr == MyController)
 	{
 		return;
@@ -559,14 +696,14 @@ void AMainCharacter::MapItemOverlapStart(UPrimitiveComponent* OverlappedComp, AA
 	PlayHUD->UIOn(EUserWidgetType::E_Key);
 }
 
-void AMainCharacter::MapItemOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ATestCharacter::MapItemOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (nullptr != GetMapItemData)
 	{
 		GetMapItemData = nullptr;
 	}
 
-	AMainPlayerController* MyController = Cast<AMainPlayerController>(GetController());
+	ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
 	if (nullptr == MyController)
 	{
 		return;
@@ -583,15 +720,15 @@ void AMainCharacter::MapItemOverlapEnd(UPrimitiveComponent* OverlappedComponent,
 	PlayHUD->UIOff(EUserWidgetType::E_Key);
 }
 
-void AMainCharacter::UpdatePlayerHp(float _DeltaTime)
+void ATestCharacter::UpdatePlayerHp(float _DeltaTime)
 {
-	AMainPlayerState* MyMainPlayerState = GetPlayerState<AMainPlayerState>();
+	ATestPlayerState* MyMainPlayerState = GetPlayerState<ATestPlayerState>();
 	if (nullptr == MyMainPlayerState)
 	{
 		return;
 	}
 
-	AMainPlayerController* MyController = Cast<AMainPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	ATestPlayerController* MyController = Cast<ATestPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (nullptr == MyController)
 	{
 		return;
@@ -601,15 +738,15 @@ void AMainCharacter::UpdatePlayerHp(float _DeltaTime)
 
 	// Get HUD
 	AMainGameHUD* PlayHUD = Cast<AMainGameHUD>(MyController->GetHUD());
-	// if(nullptr != PlayHUD)
-	// {
-	//     UHpBarUserWidget* MyHpWidget = Cast<UHpBarUserWidget>(PlayHUD->GetWidget(EInGameUIType::HpBar));
-	//     MyHpWidget->NickNameUpdate(Token, FText::FromString(FString("")));
-	//     MyHpWidget->HpbarUpdate(Token, CurHp, 100.0f);
-	// {
+	if (nullptr != PlayHUD)
+	{
+		UTestHpBarUserWidget* MyHpWidget = Cast<UTestHpBarUserWidget>(PlayHUD->GetWidget(EUserWidgetType::HpBar));
+		MyHpWidget->NickNameUpdate(Token, MyNickName);
+		MyHpWidget->HpbarUpdate(Token, GetHp, 100.0f);
+	}
 }
 
-void AMainCharacter::CheckItem()
+void ATestCharacter::CheckItem()
 {
 	// 맵에 아이템이 없을 경우.
 	if (nullptr == GetMapItemData)
@@ -634,26 +771,36 @@ void AMainCharacter::CheckItem()
 	}
 }
 
-void AMainCharacter::AttackCheck()
+void ATestCharacter::AttackCheck()
 {
 	switch (IdleDefault)
 	{
 	case EPlayerUpperState::UArm_Idle:
+	{
 		ChangeMontage(EPlayerUpperState::UArm_Attack);
 		break;
+	}
 	case EPlayerUpperState::Rifle_Idle:
-		ChangeMontage(EPlayerUpperState::Rifle_Attack);
-		// FireRayCast();
+	{
+		BulletCalculation();
+		if (true == IsExtraBullets)
+		{
+			ChangeMontage(EPlayerUpperState::Rifle_Attack);
+			FireRayCast();
+		}
 		break;
+	}
 	case EPlayerUpperState::Melee_Idle:
+	{
 		ChangeMontage(EPlayerUpperState::Melee_Attack);
 		break;
+	}
 	default:
 		break;
 	}
 }
 
-void AMainCharacter::Drink()
+void ATestCharacter::Drink()
 {
 	// 음료 체크
 	if (false == IsItemInItemSlot(static_cast<int>(EItemType::Drink)))
@@ -668,17 +815,17 @@ void AMainCharacter::Drink()
 	ChangeMontage(EPlayerUpperState::Drink);
 }
 
-void AMainCharacter::DeleteItem(int _Index)
-{
-	FPlayerItemInformation NewSlot;
-	ItemSlot[_Index] = NewSlot;
-	IsItemIn[_Index] = false;
-}
+//void ATestCharacter::DeleteItem(int _Index)
+//{
+//	FPlayerItemInformation NewSlot;
+//	ItemSlot[_Index] = NewSlot;
+//	IsItemIn[_Index] = false;
+//}
 
-void AMainCharacter::ChangeIsFaint_Implementation()
+void ATestCharacter::ChangeIsFaint_Implementation()
 {
-	AMainPlayerController* Con = Cast<AMainPlayerController>(GetController());
-	
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
+
 	if (true == IsFaint)
 	{
 		IsFaint = false;
@@ -699,7 +846,7 @@ void AMainCharacter::ChangeIsFaint_Implementation()
 	}
 }
 
-void AMainCharacter::InteractObject_Implementation(AMapObjectBase* _MapObject)
+void ATestCharacter::InteractObject_Implementation(AMapObjectBase* _MapObject)
 {
 	// Door일 경우 : 상호작용은 Switch가 발동시키므로 return
 	ADoorObject* DoorObject = Cast<ADoorObject>(_MapObject);
@@ -719,7 +866,7 @@ void AMainCharacter::InteractObject_Implementation(AMapObjectBase* _MapObject)
 	_MapObject->InterAction();
 }
 
-void AMainCharacter::BombSetStart_Implementation()
+void ATestCharacter::BombSetStart()
 {
 	// 폭탄 아이템 체크
 	if (false == ItemSlot[static_cast<int>(EItemType::Bomb)].IsItemIn)
@@ -737,10 +884,11 @@ void AMainCharacter::BombSetStart_Implementation()
 	// 폭탄 설치 가능.
 	IsBombSetting = true;
 	AreaObject->ResetBombTime();
+	SetItemSocketVisibility(false);
 	ChangeMontage(EPlayerUpperState::Bomb);
 }
 
-void AMainCharacter::BombSetTick_Implementation()
+void ATestCharacter::BombSetTick()
 {
 	if (true == IsBombSetting)
 	{
@@ -752,7 +900,7 @@ void AMainCharacter::BombSetTick_Implementation()
 		}
 
 		// 설치 시간 카운트가 끝났을 경우
-		if (0 >= AreaObject->GetInstallBombTime())
+		if (0.0f >= AreaObject->GetInstallBombTime())
 		{
 			BombSetEnd();
 		}
@@ -762,7 +910,7 @@ void AMainCharacter::BombSetTick_Implementation()
 	}
 }
 
-void AMainCharacter::BombSetCancel_Implementation()
+void ATestCharacter::BombSetCancel()
 {
 	if (true == IsBombSetting)
 	{
@@ -774,48 +922,153 @@ void AMainCharacter::BombSetCancel_Implementation()
 		}
 
 		// 이전 자세로 애니메이션 변경
+		SetItemSocketVisibility(true);
 		ChangeMontage(IdleDefault);
 	}
 }
 
-void AMainCharacter::BombSetEnd_Implementation()
+void ATestCharacter::BombSetEnd()
 {
 	if (true == IsBombSetting)
 	{
 		// 폭탄 설치 완료
 		IsBombSetting = false;
 
+		// 맵에 폭탄 설치.
 		AAreaObject* AreaObject = Cast<AAreaObject>(GetMapItemData);
 		if (nullptr != AreaObject)
 		{
-			AreaObject->InterAction();
+			BombPlanting(AreaObject);
 		}
 
 		// 인벤토리에서 폭탄 아이템 삭제
 		DeleteItemInfo(static_cast<int>(EItemType::Bomb));
 
 		// 이전 자세로 애니메이션 변경
+		SetItemSocketVisibility(true);
 		ChangeMontage(IdleDefault);
 	}
 }
 
-void AMainCharacter::GetSetSelectCharacter_Implementation(UMainGameInstance* _MainGameInstance)
+void ATestCharacter::BombPlanting_Implementation(AAreaObject* _AreaObject)
 {
-	UIToSelectCharacter = _MainGameInstance->GetUIToSelectCharacter();
+	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
+
+	if (nullptr == Inst)
+	{
+		LOG(ObjectLog, Fatal, "if (nullptr == Inst)");
+		return;
+	}
+
+	const FMapObjDataRow* TableData = Inst->GetMapObjDataTable(FName(TEXT("Bomb")));
+	_AreaObject->BombMesh->SetStaticMesh(TableData->GetMesh());
+	_AreaObject->BombMesh->SetRelativeScale3D(FVector(0.002f, 0.002f, 0.002f));
+	_AreaObject->PlantingSpotCollision->SetCollisionProfileName(FName(TEXT("NoCollision")));
+
+	if (true == HasAuthority())
+	{
+		AMainGameState* MainGameState = UMainGameBlueprintFunctionLibrary::GetMainGameState(GetWorld());
+
+		if (nullptr == MainGameState)
+		{
+			return;
+		}
+
+		if (EGameStage::PlantingBomb == MainGameState->GetCurStage())
+		{
+			MainGameState->SetCurStage(EGameStage::MoveToGatheringPoint);
+		}
+	}
 }
 
-void AMainCharacter::DeleteItemInfo(int _Index)
+void ATestCharacter::GetSetSelectCharacter_Implementation(FName _CharacterType)
+{
+	if (true == _CharacterType.IsNone())
+	{
+		_CharacterType = FName("TestPlayer");
+	}
+
+	UIToSelectCharacter = _CharacterType;
+
+	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
+	if (nullptr == Inst)
+	{
+		return;
+	}
+
+	// 스켈레탈 메쉬 선택
+	USkeletalMesh* PlayerSkeletalMesh = Inst->GetPlayerData(UIToSelectCharacter)->GetPlayerSkeletalMesh();
+	GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
+	USkeletalMesh* FPVSkeletalMesh = Inst->GetPlayerData(UIToSelectCharacter)->GetPlayerFPVPlayerSkeletalMesh();
+	FPVMesh->SetSkeletalMesh(FPVSkeletalMesh);
+
+	// ABP 선택
+	UClass* AnimInst = Cast<UClass>(Inst->GetPlayerData(UIToSelectCharacter)->GetPlayerAnimInstance());
+	GetMesh()->SetAnimInstanceClass(AnimInst);
+	FPVMesh->SetAnimInstanceClass(AnimInst);
+
+	PlayerAnimInst = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	FPVPlayerAnimInst = Cast<UPlayerAnimInstance>(FPVMesh->GetAnimInstance());
+
+	// AnimMontage 선택
+	TMap<EPlayerUpperState, class UAnimMontage*> AnimMon = Inst->GetPlayerData(UIToSelectCharacter)->GetAnimMontages();
+	PlayerAnimInst->SetAnimMontages(AnimMon);
+	FPVPlayerAnimInst->SetAnimMontages(AnimMon);
+
+
+	ClientMeshChange(UIToSelectCharacter);
+}
+
+void ATestCharacter::DeleteItemInfo(int _Index)
 {
 	FPlayerItemInformation DeleteSlot;
 	ItemSlot[_Index] = DeleteSlot;
 }
 
-bool AMainCharacter::IsItemInItemSlot(int _Index)
+void ATestCharacter::BulletCalculation()
 {
+	// 탄수 깎기.
+	ItemSlot[0].ReloadLeftNum -= 1;
+
+	// 탄알이 없다면 
+	if (ItemSlot[0].ReloadLeftNum < 0)
+	{
+		ItemSlot[0].ReloadLeftNum = 0;
+		IsExtraBullets = false;
+		
+		ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
+		if (nullptr == MyController)
+		{
+			return;
+		}
+
+		AMainGameHUD* PlayHUD = Cast<AMainGameHUD>(MyController->GetHUD());
+		if (nullptr == PlayHUD)
+		{
+			return;
+		}
+		PlayHUD->UIOn(EUserWidgetType::ReloadComment);
+				
+		//Reload_Widget->SetVisibility(ESlateVisibility::Visible);
+		return;
+	}
+	else
+	{
+		IsExtraBullets = true;
+	}
+}
+
+bool ATestCharacter::IsItemInItemSlot(int _Index)
+{
+	if (_Index == -1)
+	{
+		return false;
+	}
+
 	return ItemSlot[_Index].IsItemIn;
 }
 
-void AMainCharacter::ChangePOV()
+void ATestCharacter::ChangePOV()
 {
 	if (PointOfView == EPlayerFPSTPSState::FPS)
 	{
@@ -869,47 +1122,51 @@ void AMainCharacter::ChangePOV()
 	}
 }
 
-void AMainCharacter::CharacterReload()
+void ATestCharacter::CharacterReload()
 {
-	if (-1 == CurItemIndex)
+	if (EPlayerUpperState::Rifle_Idle != IdleDefault)
 	{
 		return;
 	}
 
-	// Widget 숨기기
-	Reload_Widget->SetVisibility(ESlateVisibility::Hidden);
-
 	// 총알 데이터 설정.
-	ItemSlot[CurItemIndex].ReloadLeftNum = ItemSlot[CurItemIndex].ReloadMaxNum;
+	ItemSlot[0].ReloadLeftNum = ItemSlot[0].ReloadMaxNum;
+
+	// Widget 숨기기
+	ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
+	if (nullptr == MyController)
+	{
+		return;
+	}
+
+	AMainGameHUD* PlayHUD = Cast<AMainGameHUD>(MyController->GetHUD());
+	if (nullptr == PlayHUD)
+	{
+		return;
+	}
+	PlayHUD->UIOff(EUserWidgetType::ReloadComment);
+	//Reload_Widget->SetVisibility(ESlateVisibility::Hidden);
 
 	// 변경된 총알 데이터 호출.
-	AMainPlayerController* Con = Cast<AMainPlayerController>(GetController());
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
 	if (nullptr != Con)
 	{
 		Con->FCharacterToReload.Execute(); // Execute -> Delegate 실행.
 	}
 }
 
-void AMainCharacter::HandAttackCollision(AActor* _OtherActor, UPrimitiveComponent* _Collision)
+void ATestCharacter::HandAttackCollision(AActor* _OtherActor, UPrimitiveComponent* _Collision)
 {
 	{
-		ABasicMonsterBase* Monster = Cast<ABasicMonsterBase>(_OtherActor);
+		AMonsterBase* Monster = Cast<AMonsterBase>(_OtherActor);
 		if (nullptr != Monster)
 		{
 			Monster->Damaged(50.0f);
 		}
 	}
-
-	{
-		//ATestBossMonsterBase* BossMonster = Cast<ATestBossMonsterBase>(_OtherActor); // 추후 Main으로 바꿔야 함.
-		//if (nullptr != BossMonster)
-		//{
-		//	BossMonster->Damaged(50.0f);
-		//}
-	}
 }
 
-void AMainCharacter::NetCheck()
+void ATestCharacter::NetCheck()
 {
 	IsServer = GetWorld()->GetAuthGameMode() != nullptr;
 	IsClient = !IsServer;
@@ -935,9 +1192,9 @@ void AMainCharacter::NetCheck()
 	}
 }
 
-void AMainCharacter::SendTokenToHpBarWidget()
+void ATestCharacter::SendTokenToHpBarWidget()
 {
-	AMainPlayerController* Con = Cast<AMainPlayerController>(GetController());
+	ATestPlayerController* Con = Cast<ATestPlayerController>(GetController());
 	if (nullptr == Con)
 	{
 		return;
@@ -949,19 +1206,19 @@ void AMainCharacter::SendTokenToHpBarWidget()
 		return;
 	}
 
-	//UTestHpBarUserWidget* MyHpWidget = Cast<UTestHpBarUserWidget>(PlayHUD->GetWidget(EUserWidgetType::HpBar));
-	//if (nullptr == MyHpWidget)
-	//{
-	//	return;
-	//}
+	UTestHpBarUserWidget* MyHpWidget = Cast<UTestHpBarUserWidget>(PlayHUD->GetWidget(EUserWidgetType::HpBar));
+	if (nullptr == MyHpWidget)
+	{
+		return;
+	}
 
-	//if (true == IsCanControlled && -1 != Token)
-	//{
-	//	MyHpWidget->HpbarInit_ForMainPlayer(Token);
-	//}
+	if (true == IsCanControlled && -1 != Token)
+	{
+		MyHpWidget->HpbarInit_ForMainPlayer(Token);
+	}
 }
 
-TArray<struct FPlayerItemInformation> AMainCharacter::GetItemSlot()
+TArray<struct FPlayerItemInformation> ATestCharacter::GetItemSlot()
 {
 	return ItemSlot;
 }

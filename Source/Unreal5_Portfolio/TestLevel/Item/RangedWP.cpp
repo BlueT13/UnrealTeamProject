@@ -6,7 +6,7 @@
 #include "TestLevel/Item/PickUpComponent.h"
 #include "TestLevel/Item/WeaponComponent.h"
 #include "TestLevel/Item/RangedWPComponent.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 #include "Components/CapsuleComponent.h"
 
 // Sets default values

@@ -6,7 +6,8 @@
 #include "Global/DataTable/ItemDataRow.h"
 #include "Item/RangedWP.h"
 #include "Global/MainGameInstance.h"
-#include "Character/TestPlayerState.h"
+
+#include "MainGameLevel/Character/TestPlayerState.h"
 
 void ATestPlayMode::BeginPlay()
 {

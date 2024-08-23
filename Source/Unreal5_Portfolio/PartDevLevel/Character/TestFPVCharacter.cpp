@@ -22,7 +22,7 @@
 
 #include "PartDevLevel/Character/PlayerAnimInstance.h"
 
-#include "TestLevel/Character/TestPlayerState.h"
+#include "MainGameLevel/Character/TestPlayerState.h"
 #include "TestLevel/UI/TestMinimapIconComponent.h"
 #include "TestLevel/UI/TestPlayHUD.h"
 #include "TestLevel/UI/TestHpBarUserWidget.h"

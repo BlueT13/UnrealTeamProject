@@ -2,7 +2,7 @@
 
 
 #include "TestLevel/Item/PickUpComponent.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 UPickUpComponent::UPickUpComponent()
 {

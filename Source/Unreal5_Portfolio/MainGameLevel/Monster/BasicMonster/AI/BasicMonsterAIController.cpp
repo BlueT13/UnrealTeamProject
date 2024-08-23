@@ -2,8 +2,6 @@
 
 
 #include "BasicMonsterAIController.h"
-#include "MainGameLevel/Player/MainPlayerState.h"
-#include "MainGameLevel/Player/MainCharacter.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -11,7 +9,7 @@
 #include "GenericTeamAgentInterface.h"
 
 #include "PartDevLevel/Character/ParentsCharacter.h"
-#include "TestLevel/Character/TestPlayerState.h"
+#include "MainGameLevel/Character/TestPlayerState.h"
 
 ABasicMonsterAIController::ABasicMonsterAIController()
 {

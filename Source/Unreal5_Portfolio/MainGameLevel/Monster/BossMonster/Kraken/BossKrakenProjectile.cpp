@@ -12,8 +12,8 @@
 
 #include "Global/ContentsLog.h"
 
-#include "TestLevel/Character/TestPlayerState.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestPlayerState.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 ABossKrakenProjectile::ABossKrakenProjectile()
 {

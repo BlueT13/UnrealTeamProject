@@ -3,7 +3,7 @@
 
 #include "TestHpBarUserWidget.h"
 #include "DefaultHpBarUserWidget.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 void UTestHpBarUserWidget::NativeConstruct()
 {

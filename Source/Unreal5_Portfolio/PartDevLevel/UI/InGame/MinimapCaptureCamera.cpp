@@ -3,7 +3,7 @@
 
 #include "PartDevLevel/UI/InGame/MinimapCaptureCamera.h"
 #include "Kismet/GameplayStatics.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 // Sets default values
 AMinimapCaptureCamera::AMinimapCaptureCamera()

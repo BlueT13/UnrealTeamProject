@@ -1,10 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MainGameLevel/Player/AnimNotifyState_Muzzle_Particle.h"
-#include "TestLevel/Character/TestCharacter.h"
-#include "MainGameLevel/Player/MainCharacter.h"
-#include "MainGameLevel/Player/PlayerItemInformation.h"
+#include "MainGameLevel/Character/AnimNotifyState_Muzzle_Particle.h"
+#include "MainGameLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/PlayerItemInformation.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"

@@ -2,9 +2,7 @@
 
 
 #include "PartDevLevel/Character/PlayerAnimInstance.h"
-#include "TestLevel/Character/TestCharacter.h"
-#include "MainGameLevel/Player/MainCharacter.h"
-#include "PartDevLevel/Character/TestFPVCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 #include "Global/MainGameBlueprintFunctionLibrary.h"
 
 void UPlayerAnimInstance::NativeBeginPlay()

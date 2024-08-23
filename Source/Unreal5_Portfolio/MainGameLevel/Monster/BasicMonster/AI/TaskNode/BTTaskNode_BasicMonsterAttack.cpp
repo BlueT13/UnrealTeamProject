@@ -5,15 +5,13 @@
 #include "MainGameLevel/Monster/Base/BasicMonsterBase.h"
 #include "MainGameLevel/Monster/Base/BasicMonsterData.h"
 #include "MainGameLevel/Monster/Animation/MonsterRandomAnimInstance.h"
-#include "MainGameLevel/Player/MainPlayerState.h"
-#include "MainGameLevel/Player/MainCharacter.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
 
 #include "Global/ContentsLog.h"
 
 #include "PartDevLevel/Character/ParentsCharacter.h"
-#include "TestLevel/Character/TestPlayerState.h"
+#include "MainGameLevel/Character/TestPlayerState.h"
 
 EBTNodeResult::Type UBTTaskNode_BasicMonsterAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {

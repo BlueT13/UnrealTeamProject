@@ -3,7 +3,7 @@
 
 #include "PartDevLevel/Object/TestSwtich.h"
 #include "Components/CapsuleComponent.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 #include "PartDevLevel/Object/TestDoor.h"
 #include "Global/MainGameBlueprintFunctionLibrary.h"
 #include "Global/ContentsLog.h"

@@ -2,9 +2,8 @@
 
 
 #include "PartDevLevel/Character/UAnimNotifyState_HandAttack.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 #include "ParentsCharacter.h"
-#include "TestFPVCharacter.h"
 
 void UUAnimNotifyState_HandAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {

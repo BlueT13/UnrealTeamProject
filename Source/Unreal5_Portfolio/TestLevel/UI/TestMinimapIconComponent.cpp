@@ -2,7 +2,7 @@
 
 
 #include "TestLevel/UI/TestMinimapIconComponent.h"
-#include "TestLevel/Character/TestCharacter.h"
+#include "MainGameLevel/Character/TestCharacter.h"
 
 #include "Global/ContentsLog.h"
 

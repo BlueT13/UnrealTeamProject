@@ -5,7 +5,7 @@
 #include "Components/ProgressBar.h"
 #include "TestPlayHUD.h"
 #include "Kismet/GameplayStatics.h"
-#include "TestLevel/Character/TestPlayerState.h"
+#include "MainGameLevel/Character/TestPlayerState.h"
 #include "TestLevel/TestPlayMode.h"
 #include "Global/MainGameBlueprintFunctionLibrary.h"
 #include "Global/DataTable/PlayerDataRow.h"
