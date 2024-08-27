@@ -14,7 +14,7 @@ void ATestPlayerState::InitPlayerData()
 	if (-1.0f == PlayerHp)
 	{
 		UMainGameInstance* MainGameInst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
-		PlayerHp = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetHp();
+		PlayerHp = MainGameInst->GetPlayerData(FName("Ely"))->GetHp();
 	}
 	int a = 0;
 }
@@ -29,7 +29,7 @@ void ATestPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void ATestPlayerState::HealHp_Implementation()
 {
 	UMainGameInstance* MainGameInst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
-	PlayerHp = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetHp();
+	PlayerHp = MainGameInst->GetPlayerData(FName("Ely"))->GetHp();
 }
 
 void ATestPlayerState::AddDamage_Implementation(float _Damage)

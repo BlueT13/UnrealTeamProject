@@ -42,12 +42,12 @@ void ALobbyCapCharacter::BeginPlay()
 	}
 
 	// Ω∫ƒÃ∑π≈ª ∏ﬁΩ¨ º±≈√
-	USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerSkeletalMesh();
+	USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerSkeletalMesh();
 	GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
 	GetMesh()->SetIsReplicated(true);
 
 	// ABP º±≈√
-	UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerAnimInstance());
+	UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerAnimInstance());
 	GetMesh()->SetAnimInstanceClass(AnimInst);
 	GetMesh()->SetIsReplicated(true);
 

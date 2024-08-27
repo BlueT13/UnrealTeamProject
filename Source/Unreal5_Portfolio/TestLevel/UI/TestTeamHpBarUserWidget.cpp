@@ -16,7 +16,7 @@ void UTestTeamHpBarUserWidget::NativeConstruct()
 	
 	// 최대 체력값 받아두기
 	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
-	MaxHp = static_cast<float>(Inst->GetPlayerData(FName("TestPlayer"))->GetHp());
+	MaxHp = static_cast<float>(Inst->GetPlayerData(FName("Ely"))->GetHp());
 
 	// 각 프로그레스바 Array에 넣어두기
 	HpArray.Add(PB_P2HpBar);

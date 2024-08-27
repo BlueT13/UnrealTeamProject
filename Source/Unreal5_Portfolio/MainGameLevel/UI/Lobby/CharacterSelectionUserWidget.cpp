@@ -14,7 +14,7 @@ void UCharacterSelectionUserWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	CharTypeName.Add(TTuple<int, FName>(0, FName("TestPlayer")));
+	CharTypeName.Add(TTuple<int, FName>(0, FName("Ely")));
 	CharTypeName.Add(TTuple<int, FName>(1, FName("Vanguard")));
 	CharTypeName.Add(TTuple<int, FName>(2, FName("AlienSoldier")));
 	CharTypeName.Add(TTuple<int, FName>(3, FName("Crypto")));

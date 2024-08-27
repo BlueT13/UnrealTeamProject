@@ -147,21 +147,21 @@ void ATestCharacter::PostInitializeComponents() // FName 부분 수정 필요.
 		//GetSetSelectCharacter(MainGameInst->GetUIToSelectCharacter()); 이걸 여기서하면 네명이 다 서버 메인플레이어의 값이 됨 ㅇㅅㅇ...
 		if (UIToSelectCharacter == "")
 		{
-			UIToSelectCharacter = "TestPlayer"; // test
+			UIToSelectCharacter = "Ely"; // test
 		}
 
 		// 스켈레탈 메쉬 선택
-		//USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerSkeletalMesh();
+		//USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerSkeletalMesh();
 		USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(UIToSelectCharacter)->GetPlayerSkeletalMesh();
 		GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
 
 
-		//USkeletalMesh* FPVSkeletalMesh = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerFPVPlayerSkeletalMesh();
+		//USkeletalMesh* FPVSkeletalMesh = MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerFPVPlayerSkeletalMesh();
 		USkeletalMesh* FPVSkeletalMesh = MainGameInst->GetPlayerData(UIToSelectCharacter)->GetPlayerFPVPlayerSkeletalMesh();
 		FPVMesh->SetSkeletalMesh(FPVSkeletalMesh);
 
 		// ABP 선택
-		//UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerAnimInstance());
+		//UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerAnimInstance());
 		UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(UIToSelectCharacter)->GetPlayerAnimInstance());
 		GetMesh()->SetAnimInstanceClass(AnimInst);
 	}
@@ -450,7 +450,7 @@ void ATestCharacter::PickUpItem(AItemBase* _Item)
 	ItemSlot[ItemSlotIndex].ReloadLeftNum = ItemData->GetReloadNum();		// 무기 장전 단위	 (Left) (-1일 경우 총기류 무기가 아님)
 	ItemSlot[ItemSlotIndex].Damage = ItemData->GetDamage();					// 무기 공격력 (0일 경우 무기가 아님)
 	ItemSlot[ItemSlotIndex].MeshRes = ItemData->GetResMesh();				// 스태틱 메시 리소스
-	if (FName("TestPlayer") == UIToSelectCharacter || FName("Vanguard") == UIToSelectCharacter)
+	if (FName("Ely") == UIToSelectCharacter || FName("Vanguard") == UIToSelectCharacter)
 	{
 		ItemSlot[ItemSlotIndex].RelLoc = ItemData->GetRelLoc_E();			// ItemSocket, FPVItemSocket 상대적 위치
 		ItemSlot[ItemSlotIndex].RelRot = ItemData->GetRelRot_E();			// ItemSocket, FPVItemSocket 상대적 회전
@@ -985,7 +985,7 @@ void ATestCharacter::GetSetSelectCharacter_Implementation(FName _CharacterType)
 {
 	if (true == _CharacterType.IsNone())
 	{
-		_CharacterType = FName("TestPlayer");
+		_CharacterType = FName("Ely");
 	}
 
 	UIToSelectCharacter = _CharacterType;

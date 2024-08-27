@@ -152,15 +152,15 @@ void ATestFPVCharacter::PostInitializeComponents()
 		//FName PlayerID = MainGameInst->GetUIToSelectCharacter();
 
 		// 스켈레탈 메쉬 선택
-		USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerSkeletalMesh();
+		USkeletalMesh* PlayerSkeletalMesh = MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerSkeletalMesh();
 		GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
 
 		// 팔 메쉬 선택 (메인 추가 필요)
-		USkeletalMesh* FPVSkeletalMesh = MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerFPVPlayerSkeletalMesh();
+		USkeletalMesh* FPVSkeletalMesh = MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerFPVPlayerSkeletalMesh();
 		FPVMesh->SetSkeletalMesh(FPVSkeletalMesh);
 
 		// ABP 선택
-		UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(FName("TestPlayer"))->GetPlayerAnimInstance());
+		UClass* AnimInst = Cast<UClass>(MainGameInst->GetPlayerData(FName("Ely"))->GetPlayerAnimInstance());
 		GetMesh()->SetAnimInstanceClass(AnimInst);
 	}
 
@@ -784,7 +784,7 @@ void ATestFPVCharacter::PickUpItem(AItemBase* _Item)	// => 메인 수정 필요 (24.08
 	ItemSlot[ItemSlotIndex].ReloadLeftNum = ItemData->GetReloadNum();		// 무기 장전 단위	 (Left) (-1일 경우 총기류 무기가 아님)
 	ItemSlot[ItemSlotIndex].Damage = ItemData->GetDamage();					// 무기 공격력 (0일 경우 무기가 아님)
 	ItemSlot[ItemSlotIndex].MeshRes = ItemData->GetResMesh();				// 스태틱 메시 리소스
-	//if ("TestPlayer" == UIToSelectCharacter || "Vanguard" == UIToSelectCharacter)
+	//if ("Ely" == UIToSelectCharacter || "Vanguard" == UIToSelectCharacter)
 	//{
 	//	ItemSlot[ItemSlotIndex].RelLoc = ItemData->GetRelLoc_E();			// ItemSocket, FPVItemSocket 상대적 위치
 	//	ItemSlot[ItemSlotIndex].RelRot = ItemData->GetRelRot_E();			// ItemSocket, FPVItemSocket 상대적 회전
@@ -1071,7 +1071,7 @@ void ATestFPVCharacter::NetCheck() // => 매인 적용.
 		UMainGameInstance* Inst = GetGameInstance<UMainGameInstance>();
 		// 이토큰은 그 인덱스가 아니다.
 		Token = Inst->GetNetToken();
-		//MyMaxHp = Inst->GetPlayerData(FName("TestPlayer"))->GetHp();
+		//MyMaxHp = Inst->GetPlayerData(FName("Ely"))->GetHp();
 
 		// UGameplayStatics::GetPlayerPawn(Token)
 	}
