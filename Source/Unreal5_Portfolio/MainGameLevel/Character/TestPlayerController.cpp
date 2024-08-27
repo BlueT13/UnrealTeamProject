@@ -57,7 +57,6 @@ void ATestPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(InputData->Actions[2], ETriggerEvent::Triggered, this, &ATestPlayerController::S_MoveBack);
 		EnhancedInputComponent->BindAction(InputData->Actions[7], ETriggerEvent::Triggered, this, &ATestPlayerController::Num_ChangePosture, 0);
 		EnhancedInputComponent->BindAction(InputData->Actions[8], ETriggerEvent::Triggered, this, &ATestPlayerController::Num_ChangePosture, 1);
-		//EnhancedInputComponent->BindAction(InputData->Actions[9], ETriggerEvent::Triggered, this, &ATestPlayerController::Num_ChangePosture, 2);
 		EnhancedInputComponent->BindAction(InputData->Actions[9], ETriggerEvent::Triggered, this, &ATestPlayerController::Num_Drink);
 		EnhancedInputComponent->BindAction(InputData->Actions[10], ETriggerEvent::Started, this, &ATestPlayerController::Num_BombSetStart);
 		EnhancedInputComponent->BindAction(InputData->Actions[10], ETriggerEvent::Triggered, this, &ATestPlayerController::Num_BombSetTick);
