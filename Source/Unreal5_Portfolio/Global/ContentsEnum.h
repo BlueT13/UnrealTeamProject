@@ -245,12 +245,6 @@ enum class EPlayerUpperState : uint8
 	Rifle_Attack,
 	
 	Drink,
-	Bomb,
-
-	MoveForward,
-	MoveBack,
-	MoveLeft,
-	MoveRight,
 };
 
 UENUM(BlueprintType)

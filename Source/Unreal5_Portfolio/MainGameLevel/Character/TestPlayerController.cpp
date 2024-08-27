@@ -259,7 +259,7 @@ void ATestPlayerController::Num_ChangePosture(int _InputKey)
 			return;
 		}
 
-		Ch->ChangeMontage(EPlayerUpperState::Rifle_Idle, true);
+		Ch->UpperState = EPlayerUpperState::Rifle_Idle;
 		ChangePostureToWidget(EPlayerUpperState::Rifle_Idle); // Widget
 	}
 	else if (_InputKey == 1)	// Ä®
@@ -269,12 +269,12 @@ void ATestPlayerController::Num_ChangePosture(int _InputKey)
 			return;
 		}
 
-		Ch->ChangeMontage(EPlayerUpperState::Melee_Idle, true);
+		Ch->UpperState = EPlayerUpperState::Melee_Idle;
 		ChangePostureToWidget(EPlayerUpperState::Melee_Idle); // Widget
 	}
 	else if (_InputKey == -1)	// ¸Ç¼Õ
 	{
-		Ch->ChangeMontage(EPlayerUpperState::UArm_Idle, true);
+		Ch->UpperState = EPlayerUpperState::UArm_Idle;
 		ChangePostureToWidget(EPlayerUpperState::UArm_Idle); // Widget
 	}
 
@@ -322,7 +322,7 @@ void ATestPlayerController::Num_BombSetEnd()
 		return;
 	}
 
-	Ch->BombSetEnd();
+	Ch->BombSetCancel();
 }
 
 void ATestPlayerController::ChangeLowerState(EPlayerLowerState _State)

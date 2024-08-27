@@ -16,11 +16,6 @@ struct FPlayerDataRow : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE FString GetName() const
-	{
-		return Name;
-	}
-
 	FORCEINLINE float GetHp() const
 	{
 		return Hp;
@@ -34,16 +29,6 @@ public:
 	FORCEINLINE float GetRotSpeed() const
 	{
 		return RotSpeed;
-	}
-
-	FORCEINLINE float GetRunSpeed() const
-	{
-		return RunSpeed;
-	}
-
-	FORCEINLINE bool GetJumping() const
-	{
-		return Jumping;
 	}
 
 	FORCEINLINE class USkeletalMesh* GetPlayerSkeletalMesh() const
@@ -70,12 +55,6 @@ protected:
 
 private:
 	/// <summary>
-	/// Player 이름
-	/// </summary>
-	UPROPERTY(Category = "Parameter", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
-	FString Name = "None";
-
-	/// <summary>
 	/// 체력
 	/// </summary>
 	UPROPERTY(Category = "Parameter", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
@@ -94,31 +73,19 @@ private:
 	float RotSpeed = 100.0f;
 
 	/// <summary>
-	/// 뛰기 속도
-	/// </summary>
-	UPROPERTY(Category = "Parameter", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
-	float RunSpeed = 2.0f;
-
-	/// <summary>
-	/// 점프 중
-	/// </summary>
-	UPROPERTY(Category = "Parameter", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
-	bool Jumping = false;
-
-	/// <summary>
-	/// 선택된 Player가 사용할 Skeletal Mesh
+	/// Player가 사용할 Skeletal Mesh
 	/// </summary>
 	UPROPERTY(Category = "PlayerSkeletalMesh", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
 	class USkeletalMesh* PlayerSkeletalMesh = nullptr;
 
 	/// <summary>
-	/// 선택된 Player가 사용할 1인칭 Skeletal Mesh
+	/// Player가 사용할 1인칭 Skeletal Mesh
 	/// </summary>
 	UPROPERTY(Category = "PlayerSkeletalMesh", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
 	class USkeletalMesh* FPVPlayerSkeletalMesh = nullptr;
 
 	/// <summary>
-	/// 선택된 Player가 사용할 Anim Instance
+	/// Player가 사용할 Anim Instance
 	/// </summary>
 	UPROPERTY(Category = "PlayerAnimInstance", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
 	TSubclassOf<class UAnimInstance> PlayerAnimInstance;
@@ -128,5 +95,4 @@ private:
 	/// </summary>
 	UPROPERTY(Category = "Animation", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
 	TMap<EPlayerUpperState, class UAnimMontage*> AnimMontages = TMap<EPlayerUpperState, class UAnimMontage*>();
-
 };

@@ -81,7 +81,7 @@ public:
 	void ChangePlayerDir(EPlayerMoveDir _Dir);
 
 	// Generic Team Id
-	virtual FGenericTeamId GetGenericTeamId() const override;
+	FGenericTeamId GetGenericTeamId() const override;
 
 private:
 	// Input

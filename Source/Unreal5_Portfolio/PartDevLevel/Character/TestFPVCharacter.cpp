@@ -200,8 +200,6 @@ void ATestFPVCharacter::BeginPlay()	// => 메인 수정 필요 (24.08.01 수정, 추가된 
 	//UCharacterMovementComponent* MyMovementComponent = GetCharacterMovement();
 	//MyMovementComponent->IsFalling();
 
-	ChangeMontage(EPlayerUpperState::UArm_Idle);
-
 	// Call Back
 	/*PlayerAnimInst->SetEndCallBack(EPlayerUpperState::Rifle_Attack,
 		[=, this](uint8 _Type, UAnimMontage* _Mon)
@@ -395,7 +393,7 @@ void ATestFPVCharacter::Drink()
 void ATestFPVCharacter::DrinkComplete_Implementation()			// => 메인에 이전 필요 (24.08.01 수정됨)
 {
 
-	ChangeMontage(IdleDefault);
+	//ChangeMontage(IdleDefault);
 }
 
 void ATestFPVCharacter::ChangeHandAttackCollisionProfile(FName _Name)
@@ -430,9 +428,6 @@ void ATestFPVCharacter::BombSetStart_Implementation()			// => 메인 수정 필요 (24
 #ifdef WITH_EDITOR
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString(TEXT("Bomb setting start.")));
 #endif
-
-	// 애니메이션 변경
-	ChangeMontage(EPlayerUpperState::Bomb);
 }
 
 void ATestFPVCharacter::BombSetTick_Implementation()		// => 메인에 이전 필요 (24.08.01 수정됨)
@@ -667,28 +662,6 @@ void ATestFPVCharacter::ChangeLowerState_Implementation(EPlayerLowerState _Lower
 
 void ATestFPVCharacter::ChangePlayerDir_Implementation(EPlayerMoveDir _Dir) // => 매인 적용.
 {
-	if (IdleDefault == EPlayerUpperState::UArm_Idle)
-	{
-		switch (_Dir)
-		{
-		case EPlayerMoveDir::Forward:
-			ChangeMontage(EPlayerUpperState::MoveForward);
-			break;
-		case EPlayerMoveDir::Back:
-			ChangeMontage(EPlayerUpperState::MoveBack);
-			break;
-		case EPlayerMoveDir::Left:
-			ChangeMontage(EPlayerUpperState::MoveLeft);
-			break;
-		case EPlayerMoveDir::Right:
-			ChangeMontage(EPlayerUpperState::MoveRight);
-			break;
-		default:
-			break;
-		}
-	}
-
-	// W A S D
 	DirValue = _Dir;
 }
 

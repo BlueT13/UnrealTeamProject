@@ -144,7 +144,7 @@ void ATestCharacter::PostInitializeComponents() // FName 부분 수정 필요.
 			return;
 		}
 
-		//GetSetSelectCharacter(MainGameInst->GetUIToSelectCharacter()); 이걸 여기서하면 네명이 다 서버 메인플레이어의 값이 됨 ㅇㅅㅇ...
+		//GetSetSelectCharacter(MainGameInst->GetUIToSelectCharacter()); 이 함수를 여기서 사용하면 네명이 다 서버 메인플레이어의 값이 됨
 		if (UIToSelectCharacter == "")
 		{
 			UIToSelectCharacter = "Ely"; // test
@@ -204,8 +204,6 @@ void ATestCharacter::BeginPlay()
 	FText InstName = FText::FromString(Inst->GetMainNickName());
 	SendNicknames(InstName);
 
-	ChangeMontage(EPlayerUpperState::UArm_Idle);
-
 	ATestPlayerController* CastCharacter = Cast<ATestPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
 	if (MyController == CastCharacter) {
@@ -225,7 +223,7 @@ void ATestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ATestCharacter, LowerStateValue);
 	// 플레이어 자세 유형.
 	DOREPLIFETIME(ATestCharacter, DirValue);
-	DOREPLIFETIME(ATestCharacter, IdleDefault);
+	DOREPLIFETIME(ATestCharacter, UpperState);
 
 	DOREPLIFETIME(ATestCharacter, Token);
 	DOREPLIFETIME(ATestCharacter, MyNickName);
@@ -239,9 +237,6 @@ void ATestCharacter::AnimationEnd(FString _CurMontage)
 	{
 		PlayerHp_Heal();
 	}
-
-	PlayerAnimInst->ChangeAnimation(IdleDefault);
-	FPVPlayerAnimInst->ChangeAnimation(IdleDefault);
 }
 
 // Called every frame
@@ -298,27 +293,6 @@ void ATestCharacter::ChangeLowerState_Implementation(EPlayerLowerState _LowerSta
 
 void ATestCharacter::ChangePlayerDir_Implementation(EPlayerMoveDir _Dir)
 {
-	if (IdleDefault == EPlayerUpperState::UArm_Idle)
-	{
-		switch (_Dir)
-		{
-		case EPlayerMoveDir::Forward:
-			ChangeMontage(EPlayerUpperState::MoveForward);
-			break;
-		case EPlayerMoveDir::Back:
-			ChangeMontage(EPlayerUpperState::MoveBack);
-			break;
-		case EPlayerMoveDir::Left:
-			ChangeMontage(EPlayerUpperState::MoveLeft);
-			break;
-		case EPlayerMoveDir::Right:
-			ChangeMontage(EPlayerUpperState::MoveRight);
-			break;
-		default:
-			break;
-		}
-	}
-
 	DirValue = _Dir;
 }
 
@@ -469,15 +443,13 @@ void ATestCharacter::PickUpItem(AItemBase* _Item)
 	{
 		if (ItemType == EItemType::Rifle)
 		{
-			IdleDefault = EPlayerUpperState::Rifle_Idle;
+			UpperState = EPlayerUpperState::Rifle_Idle;
 			SettingItemSocket(static_cast<int>(ItemType));
-			ChangeMontage(IdleDefault, true);
 		}
 		else if (ItemType == EItemType::Melee)
 		{
-			IdleDefault = EPlayerUpperState::Melee_Idle;
+			UpperState = EPlayerUpperState::Melee_Idle;
 			SettingItemSocket(static_cast<int>(ItemType));
-			ChangeMontage(IdleDefault, true);
 		}
 	}
 
@@ -520,9 +492,8 @@ void ATestCharacter::DropItem(int _SlotIndex)
 	DeleteItemInfo(_SlotIndex);
 
 	// 자세를 맨손으로 변경
-	IdleDefault = EPlayerUpperState::UArm_Idle;
+	UpperState = EPlayerUpperState::UArm_Idle;
 	SettingItemSocket(-1);
-	ChangeMontage(IdleDefault);
 
 #ifdef WITH_EDITOR
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Drop the item. (Index : %d)"), _SlotIndex + 1));
@@ -558,13 +529,8 @@ void ATestCharacter::FireRayCast_Implementation()
 	}
 }
 
-void ATestCharacter::ChangeMontage_Implementation(EPlayerUpperState _UpperState, bool IsSet)
+void ATestCharacter::ChangeMontage_Implementation(EPlayerUpperState _UpperState)
 {
-	if (true == IsSet)
-	{
-		IdleDefault = _UpperState;
-	}
-
 	PlayerAnimInst->ChangeAnimation(_UpperState);
 	FPVPlayerAnimInst->ChangeAnimation(_UpperState);
 	ClientChangeMontage(_UpperState);
@@ -572,11 +538,6 @@ void ATestCharacter::ChangeMontage_Implementation(EPlayerUpperState _UpperState,
 
 void ATestCharacter::ClientChangeMontage_Implementation(EPlayerUpperState _UpperState)
 {
-	if (PlayerAnimInst == nullptr || FPVPlayerAnimInst == nullptr)
-	{
-		return;
-	}
-
 	PlayerAnimInst->ChangeAnimation(_UpperState);
 	FPVPlayerAnimInst->ChangeAnimation(_UpperState);
 }
@@ -618,7 +579,7 @@ void ATestCharacter::PlayerHp_Heal()
 
 	ThisPlayerState->HealHp();
 
-	switch (IdleDefault)
+	switch (UpperState)
 	{
 	case EPlayerUpperState::Rifle_Idle :
 		SettingItemSocket(static_cast<int>(EItemType::Rifle));
@@ -773,7 +734,7 @@ void ATestCharacter::CheckItem()
 
 void ATestCharacter::AttackCheck()
 {
-	switch (IdleDefault)
+	switch (UpperState)
 	{
 	case EPlayerUpperState::UArm_Idle:
 	{
@@ -885,7 +846,6 @@ void ATestCharacter::BombSetStart()
 	IsBombSetting = true;
 	AreaObject->ResetBombTime();
 	SetItemSocketVisibility(false);
-	ChangeMontage(EPlayerUpperState::Bomb);
 }
 
 void ATestCharacter::BombSetTick()
@@ -923,7 +883,6 @@ void ATestCharacter::BombSetCancel()
 
 		// 이전 자세로 애니메이션 변경
 		SetItemSocketVisibility(true);
-		ChangeMontage(IdleDefault);
 	}
 }
 
@@ -946,7 +905,6 @@ void ATestCharacter::BombSetEnd()
 
 		// 이전 자세로 애니메이션 변경
 		SetItemSocketVisibility(true);
-		ChangeMontage(IdleDefault);
 	}
 }
 
@@ -1124,7 +1082,7 @@ void ATestCharacter::ChangePOV()
 
 void ATestCharacter::CharacterReload()
 {
-	if (EPlayerUpperState::Rifle_Idle != IdleDefault)
+	if (EPlayerUpperState::Rifle_Idle != UpperState)
 	{
 		return;
 	}

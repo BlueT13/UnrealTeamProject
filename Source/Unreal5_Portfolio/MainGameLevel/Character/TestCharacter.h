@@ -26,18 +26,18 @@ protected:
 	void PostInitializeComponents() override;
 
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	void BeginPlay() override;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void AnimationEnd(FString _CurMontage) override;
+	void AnimationEnd(FString _CurMontage) override;
 
 public:
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// AnimInstance
 	
@@ -46,19 +46,20 @@ public:
 	UPROPERTY(Category = "Contents", Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EPlayerLowerState LowerStateValue = EPlayerLowerState::Idle;
 
-	// 상체 정보
-	UPROPERTY(Category = "Contents", Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	EPlayerUpperState UpperStateValue = EPlayerUpperState::UArm_Idle;
-
 	// 캐릭터 방향 정보
 	UPROPERTY(Category = "Contents", Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EPlayerMoveDir DirValue = EPlayerMoveDir::Forward;
 
+	// 상체 정보
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	EPlayerUpperState IdleDefault = EPlayerUpperState::UArm_Idle;
+	EPlayerUpperState UpperState = EPlayerUpperState::UArm_Idle;
+
+	// 폭탄 설치 진행 상황
+	UPROPERTY()
+	bool IsBombSetting = false;
 
 	// 캐릭터 기절 여부.
-	UPROPERTY(Category = "Contents"/*, Replicated*/, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = "Contents", Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool IsFaint = false;
 
 	// 인벤토리에 아이템이 있는지 여부.
@@ -78,19 +79,7 @@ public:
 		return PointOfView;
 	}
 
-private: // 문제 발생 여지 있음 발생하면 그냥 지워야 함.
-	// == Components ==
-
-	// 스프링암
-	// 카메라
-	// 일인칭 메시
-	// 미니맵 아이콘
-	// 맵에 있는 아이템 탐색 전용 콜리전
-	// 아이템 장착 소켓
-	// 1인칭 아이템 장착 소켓
-	// 근접 공격에 사용
-
-
+private: 
 	// == 인칭 변경 변수 ==
 	UPROPERTY()
 	EPlayerFPSTPSState PointOfView = EPlayerFPSTPSState::FPS;
@@ -105,11 +94,6 @@ private: // 문제 발생 여지 있음 발생하면 그냥 지워야 함.
 	// 현재 아이템 Index
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int CurItemIndex = -1;
-
-	// 폭탄 설치 진행 상황
-	UPROPERTY()
-	bool IsBombSetting = false;
-
 
 	// 맵에 있는 무기 Data
 	UPROPERTY(Category = "Contents", VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -145,8 +129,8 @@ public:
 	void FireRayCast_Implementation();
 
 	UFUNCTION(Reliable, Server)
-	void ChangeMontage(EPlayerUpperState _UpperState, bool IsSet = false);
-	void ChangeMontage_Implementation(EPlayerUpperState _UpperState, bool IsSet = false);
+	void ChangeMontage(EPlayerUpperState _UpperState);
+	void ChangeMontage_Implementation(EPlayerUpperState _UpperState);
 
 	UFUNCTION(Reliable, NetMulticast)
 	void ClientChangeMontage(EPlayerUpperState _UpperState);
@@ -285,7 +269,7 @@ public:
 	UFUNCTION()
 	FORCEINLINE EPlayerUpperState GetIdleDefault() const
 	{
-		return IdleDefault;
+		return UpperState;
 	}
 
 	UFUNCTION()
