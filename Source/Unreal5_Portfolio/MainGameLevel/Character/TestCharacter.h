@@ -55,7 +55,7 @@ public:
 	EPlayerUpperState UpperState = EPlayerUpperState::UArm_Idle;
 
 	// 폭탄 설치 진행 상황
-	UPROPERTY()
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool IsBombSetting = false;
 
 	// 캐릭터 기절 여부.

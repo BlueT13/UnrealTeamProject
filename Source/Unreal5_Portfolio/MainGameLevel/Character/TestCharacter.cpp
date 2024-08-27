@@ -227,6 +227,7 @@ void ATestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(ATestCharacter, Token);
 	DOREPLIFETIME(ATestCharacter, MyNickName);
+	DOREPLIFETIME(ATestCharacter, IsBombSetting);
 
 	DOREPLIFETIME(ATestCharacter, UIToSelectCharacter); // Test
 }
@@ -581,16 +582,16 @@ void ATestCharacter::PlayerHp_Heal()
 
 	switch (UpperState)
 	{
-	case EPlayerUpperState::Rifle_Idle :
+	case EPlayerUpperState::Rifle_Idle:
 		SettingItemSocket(static_cast<int>(EItemType::Rifle));
 		break;
-	case EPlayerUpperState::Melee_Idle :
+	case EPlayerUpperState::Melee_Idle:
 		SettingItemSocket(static_cast<int>(EItemType::Melee));
 		break;
-	case EPlayerUpperState::UArm_Idle :
+	case EPlayerUpperState::UArm_Idle:
 		SettingItemSocket(-1);
 		break;
-	default :
+	default:
 		break;
 	}
 }
@@ -763,6 +764,12 @@ void ATestCharacter::AttackCheck()
 
 void ATestCharacter::Drink()
 {
+	UAnimMontage* CurMontage = GetCurrentMontage();
+	if (CurMontage != nullptr)
+	{
+		return;
+	}
+
 	// 음료 체크
 	if (false == IsItemInItemSlot(static_cast<int>(EItemType::Drink)))
 	{
@@ -993,7 +1000,7 @@ void ATestCharacter::BulletCalculation()
 	{
 		ItemSlot[0].ReloadLeftNum = 0;
 		IsExtraBullets = false;
-		
+
 		ATestPlayerController* MyController = Cast<ATestPlayerController>(GetController());
 		if (nullptr == MyController)
 		{
@@ -1006,7 +1013,7 @@ void ATestCharacter::BulletCalculation()
 			return;
 		}
 		PlayHUD->UIOn(EUserWidgetType::ReloadComment);
-				
+
 		//Reload_Widget->SetVisibility(ESlateVisibility::Visible);
 		return;
 	}
