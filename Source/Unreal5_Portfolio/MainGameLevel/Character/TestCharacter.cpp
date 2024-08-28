@@ -371,34 +371,6 @@ void ATestCharacter::SendNicknames_Implementation(const FText& _Nickname)
 	MyNickName = _Nickname;
 }
 
-void ATestCharacter::ClientMeshChange_Implementation(FName _CharacterType)
-{
-	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
-	if (nullptr == Inst)
-	{
-		return;
-	}
-
-	// 스켈레탈 메쉬 선택
-	USkeletalMesh* PlayerSkeletalMesh = Inst->GetPlayerData(_CharacterType)->GetPlayerSkeletalMesh();
-	GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
-	USkeletalMesh* FPVSkeletalMesh = Inst->GetPlayerData(_CharacterType)->GetPlayerFPVPlayerSkeletalMesh();
-	FPVMesh->SetSkeletalMesh(FPVSkeletalMesh);
-
-	// ABP 선택
-	UClass* AnimInst = Cast<UClass>(Inst->GetPlayerData(_CharacterType)->GetPlayerAnimInstance());
-	GetMesh()->SetAnimInstanceClass(AnimInst);
-	FPVMesh->SetAnimInstanceClass(AnimInst);
-
-	PlayerAnimInst = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	FPVPlayerAnimInst = Cast<UPlayerAnimInstance>(FPVMesh->GetAnimInstance());
-
-	// AnimMontage 선택
-	TMap<EPlayerUpperState, class UAnimMontage*> AnimMon = Inst->GetPlayerData(_CharacterType)->GetAnimMontages();
-	PlayerAnimInst->SetAnimMontages(AnimMon);
-	FPVPlayerAnimInst->SetAnimMontages(AnimMon);
-}
-
 void ATestCharacter::PickUpItem(AItemBase* _Item)
 {
 	const FItemDataRow* ItemData = _Item->GetItemData();
@@ -982,6 +954,34 @@ void ATestCharacter::GetSetSelectCharacter_Implementation(FName _CharacterType)
 
 
 	ClientMeshChange(UIToSelectCharacter);
+}
+
+void ATestCharacter::ClientMeshChange_Implementation(FName _CharacterType)
+{
+	UMainGameInstance* Inst = UMainGameBlueprintFunctionLibrary::GetMainGameInstance(GetWorld());
+	if (nullptr == Inst)
+	{
+		return;
+	}
+
+	// 스켈레탈 메쉬 선택
+	USkeletalMesh* PlayerSkeletalMesh = Inst->GetPlayerData(_CharacterType)->GetPlayerSkeletalMesh();
+	GetMesh()->SetSkeletalMesh(PlayerSkeletalMesh);
+	USkeletalMesh* FPVSkeletalMesh = Inst->GetPlayerData(_CharacterType)->GetPlayerFPVPlayerSkeletalMesh();
+	FPVMesh->SetSkeletalMesh(FPVSkeletalMesh);
+
+	// ABP 선택
+	UClass* AnimInst = Cast<UClass>(Inst->GetPlayerData(_CharacterType)->GetPlayerAnimInstance());
+	GetMesh()->SetAnimInstanceClass(AnimInst);
+	FPVMesh->SetAnimInstanceClass(AnimInst);
+
+	PlayerAnimInst = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	FPVPlayerAnimInst = Cast<UPlayerAnimInstance>(FPVMesh->GetAnimInstance());
+
+	// AnimMontage 선택
+	TMap<EPlayerUpperState, class UAnimMontage*> AnimMon = Inst->GetPlayerData(_CharacterType)->GetAnimMontages();
+	PlayerAnimInst->SetAnimMontages(AnimMon);
+	FPVPlayerAnimInst->SetAnimMontages(AnimMon);
 }
 
 void ATestCharacter::DeleteItemInfo(int _Index)
