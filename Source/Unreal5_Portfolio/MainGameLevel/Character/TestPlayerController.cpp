@@ -259,7 +259,7 @@ void ATestPlayerController::Num_ChangePosture(int _InputKey)
 			return;
 		}
 
-		Ch->UpperState = EPlayerUpperState::Rifle_Idle;
+		Ch->ChangeUpperState(EPlayerUpperState::Rifle_Idle);
 		ChangePostureToWidget(EPlayerUpperState::Rifle_Idle); // Widget
 	}
 	else if (_InputKey == 1)	// Ä®
@@ -268,13 +268,12 @@ void ATestPlayerController::Num_ChangePosture(int _InputKey)
 		{
 			return;
 		}
-
-		Ch->UpperState = EPlayerUpperState::Melee_Idle;
+		Ch->ChangeUpperState(EPlayerUpperState::Melee_Idle);
 		ChangePostureToWidget(EPlayerUpperState::Melee_Idle); // Widget
 	}
 	else if (_InputKey == -1)	// ¸Ç¼Õ
 	{
-		Ch->UpperState = EPlayerUpperState::UArm_Idle;
+		Ch->ChangeUpperState(EPlayerUpperState::UArm_Idle);
 		ChangePostureToWidget(EPlayerUpperState::UArm_Idle); // Widget
 	}
 
@@ -391,7 +390,7 @@ void ATestPlayerController::CameraShakeTick(float _DeltaTime)
 	{
 		return;
 	}
-	
+
 	if (ECameraShakeState::Shoot == ShakeState)
 	{
 		if (0.01f >= ShakeValue.Size())

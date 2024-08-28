@@ -416,12 +416,12 @@ void ATestCharacter::PickUpItem(AItemBase* _Item)
 	{
 		if (ItemType == EItemType::Rifle)
 		{
-			UpperState = EPlayerUpperState::Rifle_Idle;
+			ChangeUpperState(EPlayerUpperState::Rifle_Idle);
 			SettingItemSocket(static_cast<int>(ItemType));
 		}
 		else if (ItemType == EItemType::Melee)
 		{
-			UpperState = EPlayerUpperState::Melee_Idle;
+			ChangeUpperState(EPlayerUpperState::Melee_Idle);
 			SettingItemSocket(static_cast<int>(ItemType));
 		}
 	}
@@ -513,6 +513,16 @@ void ATestCharacter::ClientChangeMontage_Implementation(EPlayerUpperState _Upper
 {
 	PlayerAnimInst->ChangeAnimation(_UpperState);
 	FPVPlayerAnimInst->ChangeAnimation(_UpperState);
+}
+
+void ATestCharacter::ChangeUpperState_Implementation(EPlayerUpperState _UpperState)
+{
+	UpperState = _UpperState;
+}
+
+void ATestCharacter::ChangeIsBombSetting_Implementation(bool _IsBombSetting)
+{
+	IsBombSetting = _IsBombSetting;
 }
 
 void ATestCharacter::SettingPlayerState_Implementation()
@@ -822,7 +832,7 @@ void ATestCharacter::BombSetStart()
 	}
 
 	// ÆøÅº ¼³Ä¡ °¡´É.
-	IsBombSetting = true;
+	ChangeIsBombSetting(true);
 	AreaObject->ResetBombTime();
 	SetItemSocketVisibility(false);
 }
@@ -853,7 +863,7 @@ void ATestCharacter::BombSetCancel()
 {
 	if (true == IsBombSetting)
 	{
-		IsBombSetting = false;
+		ChangeIsBombSetting(false);
 		AAreaObject* AreaObject = Cast<AAreaObject>(GetMapItemData);
 		if (nullptr != AreaObject)
 		{
@@ -870,7 +880,7 @@ void ATestCharacter::BombSetEnd()
 	if (true == IsBombSetting)
 	{
 		// ÆøÅº ¼³Ä¡ ¿Ï·á
-		IsBombSetting = false;
+		ChangeIsBombSetting(false);
 
 		// ¸Ê¿¡ ÆøÅº ¼³Ä¡.
 		AAreaObject* AreaObject = Cast<AAreaObject>(GetMapItemData);

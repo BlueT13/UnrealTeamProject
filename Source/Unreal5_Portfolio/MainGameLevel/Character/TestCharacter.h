@@ -137,6 +137,14 @@ public:
 	void ClientChangeMontage_Implementation(EPlayerUpperState _UpperState);
 
 	UFUNCTION(Reliable, Server)
+	void ChangeUpperState(EPlayerUpperState _UpperState);
+	void ChangeUpperState_Implementation(EPlayerUpperState _UpperState);
+
+	UFUNCTION(Reliable, Server)
+	void ChangeIsBombSetting(bool _IsBombSetting);
+	void ChangeIsBombSetting_Implementation(bool _IsBombSetting);
+
+	UFUNCTION(Reliable, Server)
 	void SettingPlayerState();
 	void SettingPlayerState_Implementation();
 
