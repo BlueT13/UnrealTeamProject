@@ -465,7 +465,7 @@ void ATestCharacter::DropItem(int _SlotIndex)
 	DeleteItemInfo(_SlotIndex);
 
 	// 자세를 맨손으로 변경
-	UpperState = EPlayerUpperState::UArm_Idle;
+	UpperState = EPlayerUpperState::Hand_Idle;
 	SettingItemSocket(-1);
 
 #ifdef WITH_EDITOR
@@ -570,7 +570,7 @@ void ATestCharacter::PlayerHp_Heal()
 	case EPlayerUpperState::Melee_Idle:
 		SettingItemSocket(static_cast<int>(EItemType::Melee));
 		break;
-	case EPlayerUpperState::UArm_Idle:
+	case EPlayerUpperState::Hand_Idle:
 		SettingItemSocket(-1);
 		break;
 	default:
@@ -719,9 +719,9 @@ void ATestCharacter::AttackCheck()
 {
 	switch (UpperState)
 	{
-	case EPlayerUpperState::UArm_Idle:
+	case EPlayerUpperState::Hand_Idle:
 	{
-		ChangeMontage(EPlayerUpperState::UArm_Attack);
+		ChangeMontage(EPlayerUpperState::Hand_Attack);
 		break;
 	}
 	case EPlayerUpperState::Rifle_Idle:
@@ -1056,7 +1056,7 @@ void ATestCharacter::ChangePOV()
 		FPVMesh->SetOwnerNoSee(true);
 
 		// Item Mesh
-		for (int i = 0; i < static_cast<int>(EPlayerUpperState::UArm_Attack); i++)
+		for (int i = 0; i < static_cast<int>(EPlayerUpperState::Hand_Attack); i++)
 		{
 			ItemSocketMesh->SetOwnerNoSee(false);
 			FPVItemSocketMesh->SetOwnerNoSee(true);
@@ -1086,7 +1086,7 @@ void ATestCharacter::ChangePOV()
 		FPVMesh->SetOwnerNoSee(false);
 
 		// Item Mesh
-		for (int i = 0; i < static_cast<int>(EPlayerUpperState::UArm_Attack); i++)
+		for (int i = 0; i < static_cast<int>(EPlayerUpperState::Hand_Attack); i++)
 		{
 			ItemSocketMesh->SetOwnerNoSee(true);
 			FPVItemSocketMesh->SetOwnerNoSee(false);

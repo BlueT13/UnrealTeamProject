@@ -236,11 +236,11 @@ enum class EPlayerMoveDir : uint8
 UENUM(BlueprintType)
 enum class EPlayerUpperState : uint8
 {
-	UArm_Idle,
+	Hand_Idle,
 	Rifle_Idle,
 	Melee_Idle,
 	
-	UArm_Attack,
+	Hand_Attack,
 	Melee_Attack,
 	Rifle_Attack,
 	

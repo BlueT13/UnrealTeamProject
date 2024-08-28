@@ -135,7 +135,7 @@ private:
 	/// 아이템 종류
 	/// </summary>
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
-	EPlayerUpperState Type = EPlayerUpperState::UArm_Idle;
+	EPlayerUpperState Type = EPlayerUpperState::Hand_Idle;
 
 	/// <summary>
 	/// 아이템 이름

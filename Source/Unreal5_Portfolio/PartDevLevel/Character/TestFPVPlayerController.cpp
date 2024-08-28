@@ -248,7 +248,7 @@ void ATestFPVPlayerController::ChangePosture_Con(int _InputKey)
 	}
 	else if (_InputKey == -1) // аж╦т
 	{
-		Ch->ChangeMontage(EPlayerUpperState::UArm_Idle, true);
+		Ch->ChangeMontage(EPlayerUpperState::Hand_Idle, true);
 	}
 
 	Ch->SettingItemSocket(_InputKey);

@@ -213,7 +213,7 @@ void ATestFPVCharacter::BeginPlay()	// => 메인 수정 필요 (24.08.01 수정, 추가된 
 			AttackEndCheck();
 		});
 
-	PlayerAnimInst->SetEndCallBack(EPlayerUpperState::UArm_Attack,
+	PlayerAnimInst->SetEndCallBack(EPlayerUpperState::Hand_Attack,
 		[=, this](uint8 _Type, UAnimMontage* _Mon)
 		{
 			AttackEndCheck();
@@ -824,7 +824,7 @@ void ATestFPVCharacter::DropItem(int _SlotIndex)	// => 메인 수정 필요 (24.08.06 
 	// 애니메이션 업데이트
 	ItemToCheckAnimation();
 	//ChangePosture(EPlayerPosture::Barehand);
-	//ChangeMontage(EPlayerUpperState::UArm_Attack);
+	//ChangeMontage(EPlayerUpperState::Hand_Attack);
 }
 
 void ATestFPVCharacter::DestroyItem_Implementation(AItemBase* _Item)	// => 메인 이전 필요 (24.08.06 추가됨)
@@ -866,7 +866,7 @@ void ATestFPVCharacter::ChangePOV()	// => 메인캐릭터로 이전해야 함 (24.07.29 수�
 		FPVMesh->SetOwnerNoSee(true);
 
 		// Item Mesh
-		for (int i = 0; i < static_cast<int>(EPlayerUpperState::UArm_Attack); i++)
+		for (int i = 0; i < static_cast<int>(EPlayerUpperState::Hand_Attack); i++)
 		{
 			ItemSocketMesh->SetOwnerNoSee(false);
 			FPVItemSocketMesh->SetOwnerNoSee(true);
@@ -897,7 +897,7 @@ void ATestFPVCharacter::ChangePOV()	// => 메인캐릭터로 이전해야 함 (24.07.29 수�
 		FPVMesh->SetOwnerNoSee(false);
 
 		// Item Mesh
-		for (int i = 0; i < static_cast<int>(EPlayerUpperState::UArm_Attack); i++)
+		for (int i = 0; i < static_cast<int>(EPlayerUpperState::Hand_Attack); i++)
 		{
 			ItemSocketMesh->SetOwnerNoSee(true);
 			FPVItemSocketMesh->SetOwnerNoSee(false);
@@ -991,8 +991,8 @@ void ATestFPVCharacter::AttackCheck()
 
 	switch (IdleDefault)
 	{
-	case EPlayerUpperState::UArm_Idle:
-		ChangeMontage(EPlayerUpperState::UArm_Attack);
+	case EPlayerUpperState::Hand_Idle:
+		ChangeMontage(EPlayerUpperState::Hand_Attack);
 		break;
 	case EPlayerUpperState::Rifle_Idle:
 		ChangeMontage(EPlayerUpperState::Rifle_Attack);

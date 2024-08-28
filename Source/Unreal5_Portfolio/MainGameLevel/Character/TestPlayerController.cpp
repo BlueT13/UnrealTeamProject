@@ -273,8 +273,8 @@ void ATestPlayerController::Num_ChangePosture(int _InputKey)
 	}
 	else if (_InputKey == -1)	// ¸Ç¼Õ
 	{
-		Ch->ChangeUpperState(EPlayerUpperState::UArm_Idle);
-		ChangePostureToWidget(EPlayerUpperState::UArm_Idle); // Widget
+		Ch->ChangeUpperState(EPlayerUpperState::Hand_Idle);
+		ChangePostureToWidget(EPlayerUpperState::Hand_Idle); // Widget
 	}
 
 	Ch->SettingItemSocket(_InputKey);

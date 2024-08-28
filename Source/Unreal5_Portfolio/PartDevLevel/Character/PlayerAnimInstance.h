@@ -32,7 +32,7 @@ public:
 	EPlayerLowerState PlayerLowerState = EPlayerLowerState::Idle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	EPlayerUpperState PlayerUppperState = EPlayerUpperState::UArm_Idle;
+	EPlayerUpperState PlayerUppperState = EPlayerUpperState::Hand_Idle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EPlayerMoveDir PlayerDir = EPlayerMoveDir::Forward;

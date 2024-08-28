@@ -52,7 +52,7 @@ public:
 
 	// 상체 정보
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	EPlayerUpperState UpperState = EPlayerUpperState::UArm_Idle;
+	EPlayerUpperState UpperState = EPlayerUpperState::Hand_Idle;
 
 	// 폭탄 설치 진행 상황
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

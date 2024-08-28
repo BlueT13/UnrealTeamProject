@@ -253,5 +253,5 @@ public:
 	int Token = -1;
 
 	UPROPERTY(Category = "TPSNet", Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	EPlayerUpperState IdleDefault = EPlayerUpperState::UArm_Idle;
+	EPlayerUpperState IdleDefault = EPlayerUpperState::Hand_Idle;
 };
