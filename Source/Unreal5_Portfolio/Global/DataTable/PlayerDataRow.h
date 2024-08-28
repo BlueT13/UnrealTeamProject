@@ -94,5 +94,5 @@ private:
 	/// Player ¸ùÅ¸ÁÖ
 	/// </summary>
 	UPROPERTY(Category = "Animation", EditAnywhere, BlueprintReadWrite, meta = (AllowprivateAccess = "true"))
-	TMap<EPlayerUpperState, class UAnimMontage*> AnimMontages = TMap<EPlayerUpperState, class UAnimMontage*>();
+	TMap<EPlayerUpperState, class UAnimMontage*> AnimMontages;
 };
